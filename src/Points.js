@@ -35,7 +35,8 @@ export default class Points extends mix(Three.Points)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {
+    SceneGraphMixin,
+  ) {
   constructor(geometry, material) {
     super(geometry, material || new PointsMaterial())
     if (this.material) {

@@ -35,7 +35,8 @@ export default class LineSegments extends mix(Three.LineSegments)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {
+    SceneGraphMixin,
+  ) {
   constructor(geometry, material) {
     super(geometry, material || new LineBasicMaterial())
     if (this.material) {

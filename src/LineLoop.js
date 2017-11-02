@@ -35,7 +35,8 @@ export default class LineLoop extends mix(Three.LineLoop)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {
+    SceneGraphMixin,
+  ) {
   constructor(geometry, material) {
     super(geometry, material || new LineBasicMaterial())
     if (this.material) {

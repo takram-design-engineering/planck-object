@@ -34,4 +34,5 @@ export default class Group extends mix(Three.Group)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {}
+    SceneGraphMixin,
+  ) {}

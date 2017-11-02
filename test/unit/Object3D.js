@@ -31,7 +31,7 @@ import sinonChai from 'sinon-chai'
 
 import { Object3D } from '../..'
 
-const expect = chai.expect
+const { expect } = chai
 chai.use(sinonChai)
 
 describe('Object3D', () => {

@@ -52,7 +52,7 @@ export default class Text extends Sprite {
 
   draw() {
     const context = this.canvas.getContext('2d')
-    const style = this.style
+    const { style } = this
     const lines = this.text.toString().split('\n')
     const size = this.measureLines(lines, this.style)
     const {
@@ -74,7 +74,7 @@ export default class Text extends Sprite {
     size.height += marginTop + marginBottom
     const width = size.width * this.pixelRatio
     const height = size.height * this.pixelRatio
-    const pixelRatio = this.pixelRatio
+    const { pixelRatio } = this
     this.canvas.width = Three.Math.nextPowerOfTwo(width + 2 * pixelRatio)
     this.canvas.height = Three.Math.nextPowerOfTwo(height + 2 * pixelRatio)
     const offsetX = (this.canvas.width - width) / 2

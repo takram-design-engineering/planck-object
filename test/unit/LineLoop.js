@@ -31,7 +31,7 @@ import sinonChai from 'sinon-chai'
 
 import { LineLoop } from '../..'
 
-const expect = chai.expect
+const { expect } = chai
 chai.use(sinonChai)
 
 describe('LineLoop', () => {

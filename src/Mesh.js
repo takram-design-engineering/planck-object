@@ -34,7 +34,8 @@ export default class Mesh extends mix(Three.Mesh)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {
+    SceneGraphMixin,
+  ) {
   constructor(geometry, material) {
     super(geometry, material || new Three.MeshLambertMaterial())
     this.castShadow = true

@@ -34,7 +34,8 @@ export default class Sprite extends mix(Three.Sprite)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin) {
+    SceneGraphMixin,
+  ) {
   constructor(material) {
     super(material)
     if (this.material) {
