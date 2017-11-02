@@ -500,6 +500,7 @@ switch (environmentType) {
     environmentSelf = window;
     break;
   case 'worker':
+    // eslint-disable-next-line no-restricted-globals
     environmentSelf = self;
     break;
   case 'node':
@@ -2162,6 +2163,7 @@ var Text = function (_Sprite) {
     value: function draw() {
       var context = this.canvas.getContext('2d');
       var style = this.style;
+
       var lines = this.text.toString().split('\n');
       var size = this.measureLines(lines, this.style);
       var _style = this.style,
@@ -2184,6 +2186,7 @@ var Text = function (_Sprite) {
       var width = size.width * this.pixelRatio;
       var height = size.height * this.pixelRatio;
       var pixelRatio = this.pixelRatio;
+
       this.canvas.width = Three.Math.nextPowerOfTwo(width + 2 * pixelRatio);
       this.canvas.height = Three.Math.nextPowerOfTwo(height + 2 * pixelRatio);
       var offsetX = (this.canvas.width - width) / 2;
