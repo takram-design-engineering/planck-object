@@ -2187,8 +2187,8 @@ var Text = function (_Sprite) {
       var height = size.height * this.pixelRatio;
       var pixelRatio = this.pixelRatio;
 
-      this.canvas.width = Three.Math.nextPowerOfTwo(width + 2 * pixelRatio);
-      this.canvas.height = Three.Math.nextPowerOfTwo(height + 2 * pixelRatio);
+      this.canvas.width = Three.Math.ceilPowerOfTwo(width + 2 * pixelRatio);
+      this.canvas.height = Three.Math.ceilPowerOfTwo(height + 2 * pixelRatio);
       var offsetX = (this.canvas.width - width) / 2;
       var offsetY = (this.canvas.height - height) / 2;
       context.save();

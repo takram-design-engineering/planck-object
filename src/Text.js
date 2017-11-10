@@ -75,8 +75,8 @@ export default class Text extends Sprite {
     const width = size.width * this.pixelRatio
     const height = size.height * this.pixelRatio
     const { pixelRatio } = this
-    this.canvas.width = Three.Math.nextPowerOfTwo(width + 2 * pixelRatio)
-    this.canvas.height = Three.Math.nextPowerOfTwo(height + 2 * pixelRatio)
+    this.canvas.width = Three.Math.ceilPowerOfTwo(width + 2 * pixelRatio)
+    this.canvas.height = Three.Math.ceilPowerOfTwo(height + 2 * pixelRatio)
     const offsetX = (this.canvas.width - width) / 2
     const offsetY = (this.canvas.height - height) / 2
     context.save()
