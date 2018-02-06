@@ -14,118 +14,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
 
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
 
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
-
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
 
 
 
@@ -292,8 +181,6 @@ var toConsumableArray = function (arr) {
   }
 };
 
-'use strict';
-
 var _cachedApplicationRef = Symbol('_cachedApplicationRef');
 var _mixinRef = Symbol('_mixinRef');
 var _originalMixin = Symbol('_originalMixin');
@@ -407,31 +294,10 @@ var MixinBuilder = function () {
   return MixinBuilder;
 }();
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-function Namespace() {
+function createNamespace() {
   var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
   var symbol = Symbol(name);
@@ -448,97 +314,64 @@ function Namespace() {
   };
 }
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var environmentType = function () {
+var isBrowser = function () {
   try {
     // eslint-disable-next-line no-new-func
     if (new Function('return this === window')()) {
-      return 'browser';
+      return true;
     }
   } catch (error) {}
+  return false;
+}();
+
+var isWorker = !isBrowser && function () {
   try {
     // eslint-disable-next-line no-new-func
     if (new Function('return this === self')()) {
-      return 'worker';
+      return true;
     }
   } catch (error) {}
+  return false;
+}();
+
+var isNode = !isBrowser && !isWorker && function () {
   try {
     // eslint-disable-next-line no-new-func
     if (new Function('return this === global')()) {
-      return 'node';
+      return true;
     }
   } catch (error) {}
+  return false;
+}();
+
+var globalScope = function () {
+  if (isBrowser) {
+    return window;
+  }
+  if (isWorker) {
+    // eslint-disable-next-line no-restricted-globals
+    return self;
+  }
+  if (isNode) {
+    return global;
+  }
   return undefined;
 }();
 
-var environmentSelf = void 0;
-switch (environmentType) {
-  case 'browser':
-    environmentSelf = window;
-    break;
-  case 'worker':
-    environmentSelf = self;
-    break;
-  case 'node':
-    environmentSelf = global;
-    break;
-  default:
-    break;
-}
-
-var Environment = {
-  type: environmentType,
-  self: environmentSelf
+var Global = {
+  isBrowser: isBrowser,
+  isWorker: isWorker,
+  isNode: isNode,
+  scope: globalScope
 };
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var internal$1 = Namespace('Event');
+var internal = createNamespace('Event');
 
 var Event = function () {
   function Event() {
@@ -560,12 +393,12 @@ var Event = function () {
           _ref$cancelable = _ref.cancelable,
           cancelable = _ref$cancelable === undefined ? true : _ref$cancelable;
 
-      var scope = internal$1(this);
+      var scope = internal(this);
       scope.type = type !== undefined ? type : null;
       scope.captures = !!captures;
       scope.bubbles = !!bubbles;
       scope.cancelable = !!cancelable;
-      scope.timeStamp = Environment.self.performance && Environment.self.performance.now && Environment.self.performance.now() || Date.now();
+      scope.timeStamp = Global.scope.performance && Global.scope.performance.now && Global.scope.performance.now() || Date.now();
       scope.propagationStopped = false;
       scope.immediatePropagationStopped = false;
       scope.defaultPrevented = false;
@@ -577,13 +410,13 @@ var Event = function () {
   }, {
     key: 'stopPropagation',
     value: function stopPropagation() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       scope.propagationStopped = true;
     }
   }, {
     key: 'stopImmediatePropagation',
     value: function stopImmediatePropagation() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       scope.propagationStopped = true;
       scope.immediatePropagationStopped = true;
     }
@@ -591,74 +424,74 @@ var Event = function () {
     key: 'preventDefault',
     value: function preventDefault() {
       if (this.cancelable) {
-        var scope = internal$1(this);
+        var scope = internal(this);
         scope.defaultPrevented = true;
       }
     }
   }, {
     key: 'type',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.type;
     }
   }, {
     key: 'target',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.target;
     }
   }, {
     key: 'currentTarget',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.currentTarget;
     }
   }, {
     key: 'eventPhase',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.eventPhase;
     }
   }, {
     key: 'captures',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.captures;
     }
   }, {
     key: 'bubbles',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.bubbles;
     }
   }, {
     key: 'cancelable',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.cancelable;
     }
   }, {
     key: 'timeStamp',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.timeStamp;
     }
   }, {
     key: 'propagationStopped',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.propagationStopped;
     }
   }, {
     key: 'immediatePropagationStopped',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.immediatePropagationStopped;
     }
   }, {
     key: 'defaultPrevented',
     get: function get$$1() {
-      var scope = internal$1(this);
+      var scope = internal(this);
       return scope.defaultPrevented;
     }
   }]);
@@ -666,7 +499,7 @@ var Event = function () {
 }();
 
 function modifyEvent(event) {
-  var scope = internal$1(event);
+  var scope = internal(event);
   return {
     set target(value) {
       scope.target = value !== undefined ? value : null;
@@ -682,29 +515,8 @@ function modifyEvent(event) {
   };
 }
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 var CustomEvent = function (_Event) {
   inherits(CustomEvent, _Event);
@@ -732,29 +544,8 @@ var CustomEvent = function (_Event) {
   return CustomEvent;
 }(Event);
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 var GenericEvent = function (_CustomEvent) {
   inherits(GenericEvent, _CustomEvent);
@@ -777,7 +568,9 @@ var GenericEvent = function (_CustomEvent) {
           bubbles = _ref$bubbles === undefined ? false : _ref$bubbles,
           rest = objectWithoutProperties(_ref, ['type', 'target', 'captures', 'bubbles']);
 
-      get(GenericEvent.prototype.__proto__ || Object.getPrototypeOf(GenericEvent.prototype), 'init', this).call(this, { type: type, target: target, captures: captures, bubbles: bubbles });
+      get(GenericEvent.prototype.__proto__ || Object.getPrototypeOf(GenericEvent.prototype), 'init', this).call(this, {
+        type: type, target: target, captures: captures, bubbles: bubbles
+      });
       var names = Object.keys(rest);
       for (var i = 0; i < names.length; ++i) {
         var name = names[i];
@@ -793,31 +586,10 @@ var GenericEvent = function (_CustomEvent) {
   return GenericEvent;
 }(CustomEvent);
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var internal = Namespace('EventDispatcherMixin');
+var internal$1 = createNamespace('EventDispatcherMixin');
 
 function handleEvent(event, listener) {
   if (typeof listener === 'function') {
@@ -845,7 +617,7 @@ var EventDispatcherMixin = Mixin(function (S) {
 
       var _this = possibleConstructorReturn(this, (_ref = EventDispatcherMixin.__proto__ || Object.getPrototypeOf(EventDispatcherMixin)).call.apply(_ref, [this].concat(args)));
 
-      var scope = internal(_this);
+      var scope = internal$1(_this);
       scope.listeners = {};
       return _this;
     }
@@ -858,7 +630,7 @@ var EventDispatcherMixin = Mixin(function (S) {
         if (typeof listener !== 'function' && (typeof listener === 'undefined' ? 'undefined' : _typeof(listener)) !== 'object') {
           throw new Error('Attempt to add non-function non-object listener');
         }
-        var scope = internal(this);
+        var scope = internal$1(this);
         if (scope.listeners[type] === undefined) {
           scope.listeners[type] = { bubble: [], capture: [] };
         }
@@ -873,7 +645,7 @@ var EventDispatcherMixin = Mixin(function (S) {
       value: function removeEventListener(type, listener) {
         var capture = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-        var scope = internal(this);
+        var scope = internal$1(this);
         if (scope.listeners[type] === undefined) {
           return;
         }
@@ -927,23 +699,27 @@ var EventDispatcherMixin = Mixin(function (S) {
         // Current target should be always this
         modifier.currentTarget = this;
 
-        var scope = internal(this);
+        var scope = internal$1(this);
         var listeners = scope.listeners[event.type];
         if (listeners === undefined) {
           return;
         }
-        var eventPhase = event.eventPhase;
+        var _event = event,
+            eventPhase = _event.eventPhase;
+
         if (!eventPhase || eventPhase === 'target' || eventPhase === 'capture') {
-          for (var i = 0; i < listeners.capture.length; ++i) {
-            handleEvent(event, listeners.capture[i]);
+          var capture = [].concat(toConsumableArray(listeners.capture));
+          for (var i = 0; i < capture.length; ++i) {
+            handleEvent(event, capture[i]);
             if (event.immediatePropagationStopped) {
               return;
             }
           }
         }
         if (!eventPhase || eventPhase === 'target' || eventPhase === 'bubble') {
-          for (var _i = 0; _i < listeners.bubble.length; ++_i) {
-            handleEvent(event, listeners.bubble[_i]);
+          var bubble = [].concat(toConsumableArray(listeners.bubble));
+          for (var _i = 0; _i < bubble.length; ++_i) {
+            handleEvent(event, bubble[_i]);
             if (event.immediatePropagationStopped) {
               return;
             }
@@ -955,31 +731,10 @@ var EventDispatcherMixin = Mixin(function (S) {
   }(S);
 });
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var internal$2 = Namespace('EventTargetMixin');
+var internal$2 = createNamespace('EventTargetMixin');
 
 // eslint-disable-next-line arrow-parens
 var EventTargetMixin = Mixin(function (S) {
@@ -1124,31 +879,10 @@ var EventTargetMixin = Mixin(function (S) {
   }(S);
 });
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var internal$3 = Namespace('SceneGraphMixin');
+var internal$3 = createNamespace('SceneGraphMixin');
 
 var SceneGraphMixin = Mixin(function (S) {
   return function (_S) {
@@ -1302,39 +1036,18 @@ var SceneGraphMixin = Mixin(function (S) {
   }(S);
 });
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Group$1 = function (_mix$with) {
-  inherits(Group$$1, _mix$with);
+var Group = function (_mix$with) {
+  inherits(Group, _mix$with);
 
-  function Group$$1() {
-    classCallCheck(this, Group$$1);
-    return possibleConstructorReturn(this, (Group$$1.__proto__ || Object.getPrototypeOf(Group$$1)).apply(this, arguments));
+  function Group() {
+    classCallCheck(this, Group);
+    return possibleConstructorReturn(this, (Group.__proto__ || Object.getPrototypeOf(Group)).apply(this, arguments));
   }
 
-  return Group$$1;
+  return Group;
 }(mix(Three.Group).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
 var depth_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec4 diffuseColor = vec4(1.0);\n\n#if DEPTH_PACKING == 3200\n  diffuseColor.a = opacity;\n#endif\n";
@@ -1421,33 +1134,12 @@ var points_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2
 
 var points_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_vert.glsl\n\nuniform float size;\nuniform float scale;\n\n#include <common>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 /* eslint-disable camelcase */
 
-var ShaderLib$1 = {
+var ShaderLib = {
   depth_frag_begin: depth_frag_begin,
   depth_frag_end: depth_frag_end,
   depth_frag_params: depth_frag_params,
@@ -1492,33 +1184,12 @@ var ShaderLib$1 = {
   points_vert_params: points_vert_params
 };
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 var Shader = {
   include: function include(source) {
-    var includes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ShaderLib$1;
+    var includes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ShaderLib;
     var scope = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'planck/';
 
     var pattern = new RegExp('#include +<' + scope + '([\\w\\d.]+)>', 'g');
@@ -1537,38 +1208,17 @@ var fragmentShader = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 20
 
 var vertexShader = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/line_basic_vert_params>\n\nvoid main() {\n  #include <planck/line_basic_vert_begin>\n  #include <planck/line_basic_vert_end>\n}\n";
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var LineBasicMaterial$1 = function (_Three$ShaderMaterial) {
-  inherits(LineBasicMaterial$$1, _Three$ShaderMaterial);
+var LineBasicMaterial = function (_Three$ShaderMaterial) {
+  inherits(LineBasicMaterial, _Three$ShaderMaterial);
 
-  function LineBasicMaterial$$1() {
+  function LineBasicMaterial() {
     var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    classCallCheck(this, LineBasicMaterial$$1);
+    classCallCheck(this, LineBasicMaterial);
 
-    var _this = possibleConstructorReturn(this, (LineBasicMaterial$$1.__proto__ || Object.getPrototypeOf(LineBasicMaterial$$1)).call(this));
+    var _this = possibleConstructorReturn(this, (LineBasicMaterial.__proto__ || Object.getPrototypeOf(LineBasicMaterial)).call(this));
 
     _this.color = new Three.Color(0xffffff);
     var source = new Three.LineBasicMaterial();
@@ -1586,40 +1236,19 @@ var LineBasicMaterial$1 = function (_Three$ShaderMaterial) {
     return _this;
   }
 
-  return LineBasicMaterial$$1;
+  return LineBasicMaterial;
 }(Three.ShaderMaterial);
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Line$1 = function (_mix$with) {
-  inherits(Line$$1, _mix$with);
+var Line = function (_mix$with) {
+  inherits(Line, _mix$with);
 
-  function Line$$1(geometry, material) {
-    classCallCheck(this, Line$$1);
+  function Line(geometry, material) {
+    classCallCheck(this, Line);
 
-    var _this = possibleConstructorReturn(this, (Line$$1.__proto__ || Object.getPrototypeOf(Line$$1)).call(this, geometry, material || new LineBasicMaterial$1()));
+    var _this = possibleConstructorReturn(this, (Line.__proto__ || Object.getPrototypeOf(Line)).call(this, geometry, material || new LineBasicMaterial()));
 
     if (_this.material) {
       _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1629,40 +1258,19 @@ var Line$1 = function (_mix$with) {
     return _this;
   }
 
-  return Line$$1;
+  return Line;
 }(mix(Three.Line).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var LineLoop$1 = function (_mix$with) {
-  inherits(LineLoop$$1, _mix$with);
+var LineLoop = function (_mix$with) {
+  inherits(LineLoop, _mix$with);
 
-  function LineLoop$$1(geometry, material) {
-    classCallCheck(this, LineLoop$$1);
+  function LineLoop(geometry, material) {
+    classCallCheck(this, LineLoop);
 
-    var _this = possibleConstructorReturn(this, (LineLoop$$1.__proto__ || Object.getPrototypeOf(LineLoop$$1)).call(this, geometry, material || new LineBasicMaterial$1()));
+    var _this = possibleConstructorReturn(this, (LineLoop.__proto__ || Object.getPrototypeOf(LineLoop)).call(this, geometry, material || new LineBasicMaterial()));
 
     if (_this.material) {
       _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1672,40 +1280,19 @@ var LineLoop$1 = function (_mix$with) {
     return _this;
   }
 
-  return LineLoop$$1;
+  return LineLoop;
 }(mix(Three.LineLoop).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var LineSegments$1 = function (_mix$with) {
-  inherits(LineSegments$$1, _mix$with);
+var LineSegments = function (_mix$with) {
+  inherits(LineSegments, _mix$with);
 
-  function LineSegments$$1(geometry, material) {
-    classCallCheck(this, LineSegments$$1);
+  function LineSegments(geometry, material) {
+    classCallCheck(this, LineSegments);
 
-    var _this = possibleConstructorReturn(this, (LineSegments$$1.__proto__ || Object.getPrototypeOf(LineSegments$$1)).call(this, geometry, material || new LineBasicMaterial$1()));
+    var _this = possibleConstructorReturn(this, (LineSegments.__proto__ || Object.getPrototypeOf(LineSegments)).call(this, geometry, material || new LineBasicMaterial()));
 
     if (_this.material) {
       _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1715,40 +1302,19 @@ var LineSegments$1 = function (_mix$with) {
     return _this;
   }
 
-  return LineSegments$$1;
+  return LineSegments;
 }(mix(Three.LineSegments).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Mesh$1 = function (_mix$with) {
-  inherits(Mesh$$1, _mix$with);
+var Mesh = function (_mix$with) {
+  inherits(Mesh, _mix$with);
 
-  function Mesh$$1(geometry, material) {
-    classCallCheck(this, Mesh$$1);
+  function Mesh(geometry, material) {
+    classCallCheck(this, Mesh);
 
-    var _this = possibleConstructorReturn(this, (Mesh$$1.__proto__ || Object.getPrototypeOf(Mesh$$1)).call(this, geometry, material || new Three.MeshLambertMaterial()));
+    var _this = possibleConstructorReturn(this, (Mesh.__proto__ || Object.getPrototypeOf(Mesh)).call(this, geometry, material || new Three.MeshLambertMaterial()));
 
     _this.castShadow = true;
     _this.receiveShadow = true;
@@ -1760,80 +1326,38 @@ var Mesh$1 = function (_mix$with) {
     return _this;
   }
 
-  return Mesh$$1;
+  return Mesh;
 }(mix(Three.Mesh).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Object3D$1 = function (_mix$with) {
-  inherits(Object3D$$1, _mix$with);
+var Object3D = function (_mix$with) {
+  inherits(Object3D, _mix$with);
 
-  function Object3D$$1() {
-    classCallCheck(this, Object3D$$1);
-    return possibleConstructorReturn(this, (Object3D$$1.__proto__ || Object.getPrototypeOf(Object3D$$1)).apply(this, arguments));
+  function Object3D() {
+    classCallCheck(this, Object3D);
+    return possibleConstructorReturn(this, (Object3D.__proto__ || Object.getPrototypeOf(Object3D)).apply(this, arguments));
   }
 
-  return Object3D$$1;
+  return Object3D;
 }(mix(Three.Object3D).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
 var fragmentShader$1 = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/points_frag_params>\n\nvoid main() {\n  #include <planck/points_frag_begin>\n  #include <planck/points_frag_end>\n}\n";
 
 var vertexShader$1 = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/points_vert_params>\n\nvoid main() {\n  #include <planck/points_vert_begin>\n  #include <planck/points_vert_end>\n}\n";
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var PointsMaterial$1 = function (_Three$ShaderMaterial) {
-  inherits(PointsMaterial$$1, _Three$ShaderMaterial);
+var PointsMaterial = function (_Three$ShaderMaterial) {
+  inherits(PointsMaterial, _Three$ShaderMaterial);
 
-  function PointsMaterial$$1() {
+  function PointsMaterial() {
     var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    classCallCheck(this, PointsMaterial$$1);
+    classCallCheck(this, PointsMaterial);
 
-    var _this = possibleConstructorReturn(this, (PointsMaterial$$1.__proto__ || Object.getPrototypeOf(PointsMaterial$$1)).call(this));
+    var _this = possibleConstructorReturn(this, (PointsMaterial.__proto__ || Object.getPrototypeOf(PointsMaterial)).call(this));
 
     _this.color = new Three.Color(0xffffff);
     var source = new Three.PointsMaterial();
@@ -1848,40 +1372,19 @@ var PointsMaterial$1 = function (_Three$ShaderMaterial) {
     return _this;
   }
 
-  return PointsMaterial$$1;
+  return PointsMaterial;
 }(Three.ShaderMaterial);
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Points$1 = function (_mix$with) {
-  inherits(Points$$1, _mix$with);
+var Points = function (_mix$with) {
+  inherits(Points, _mix$with);
 
-  function Points$$1(geometry, material) {
-    classCallCheck(this, Points$$1);
+  function Points(geometry, material) {
+    classCallCheck(this, Points);
 
-    var _this = possibleConstructorReturn(this, (Points$$1.__proto__ || Object.getPrototypeOf(Points$$1)).call(this, geometry, material || new PointsMaterial$1()));
+    var _this = possibleConstructorReturn(this, (Points.__proto__ || Object.getPrototypeOf(Points)).call(this, geometry, material || new PointsMaterial()));
 
     if (_this.material) {
       _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1891,50 +1394,29 @@ var Points$1 = function (_mix$with) {
     return _this;
   }
 
-  createClass(Points$$1, [{
+  createClass(Points, [{
     key: 'identifierLength',
     get: function get$$1() {
       var position = this.geometry.getAttribute('position');
       if (!position) {
-        return get(Points$$1.prototype.__proto__ || Object.getPrototypeOf(Points$$1.prototype), 'identifierLength', this);
+        return get(Points.prototype.__proto__ || Object.getPrototypeOf(Points.prototype), 'identifierLength', this);
       }
       return position.count + 1;
     }
   }]);
-  return Points$$1;
+  return Points;
 }(mix(Three.Points).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
-var Sprite$1 = function (_mix$with) {
-  inherits(Sprite$$1, _mix$with);
+var Sprite = function (_mix$with) {
+  inherits(Sprite, _mix$with);
 
-  function Sprite$$1(material) {
-    classCallCheck(this, Sprite$$1);
+  function Sprite(material) {
+    classCallCheck(this, Sprite);
 
-    var _this = possibleConstructorReturn(this, (Sprite$$1.__proto__ || Object.getPrototypeOf(Sprite$$1)).call(this, material));
+    var _this = possibleConstructorReturn(this, (Sprite.__proto__ || Object.getPrototypeOf(Sprite)).call(this, material));
 
     if (_this.material) {
       _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1945,7 +1427,7 @@ var Sprite$1 = function (_mix$with) {
     return _this;
   }
 
-  createClass(Sprite$$1, [{
+  createClass(Sprite, [{
     key: 'onBeforeRender',
     value: function onBeforeRender(renderer, scene, camera, geometry, material, group) {
       var scale = 1 / camera.zoom;
@@ -1957,32 +1439,11 @@ var Sprite$1 = function (_mix$with) {
       }
     }
   }]);
-  return Sprite$$1;
+  return Sprite;
 }(mix(Three.Sprite).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 var TextStyle = function () {
   function TextStyle() {
@@ -2106,29 +1567,8 @@ var TextStyle = function () {
   return TextStyle;
 }();
 
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
+// The MIT License
+// Copyright (C) 2016-Present Shota Matsuda
 
 var Text = function (_Sprite) {
   inherits(Text, _Sprite);
@@ -2162,6 +1602,7 @@ var Text = function (_Sprite) {
     value: function draw() {
       var context = this.canvas.getContext('2d');
       var style = this.style;
+
       var lines = this.text.toString().split('\n');
       var size = this.measureLines(lines, this.style);
       var _style = this.style,
@@ -2184,8 +1625,9 @@ var Text = function (_Sprite) {
       var width = size.width * this.pixelRatio;
       var height = size.height * this.pixelRatio;
       var pixelRatio = this.pixelRatio;
-      this.canvas.width = Three.Math.nextPowerOfTwo(width + 2 * pixelRatio);
-      this.canvas.height = Three.Math.nextPowerOfTwo(height + 2 * pixelRatio);
+
+      this.canvas.width = Three.Math.ceilPowerOfTwo(width + 2 * pixelRatio);
+      this.canvas.height = Three.Math.ceilPowerOfTwo(height + 2 * pixelRatio);
       var offsetX = (this.canvas.width - width) / 2;
       var offsetY = (this.canvas.height - height) / 2;
       context.save();
@@ -2328,7 +1770,7 @@ var Text = function (_Sprite) {
     }
   }]);
   return Text;
-}(Sprite$1);
+}(Sprite);
 
 //
 //  The MIT License
@@ -2354,15 +1796,15 @@ var Text = function (_Sprite) {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-exports.Group = Group$1;
-exports.Line = Line$1;
-exports.LineLoop = LineLoop$1;
-exports.LineSegments = LineSegments$1;
-exports.Mesh = Mesh$1;
-exports.Object3D = Object3D$1;
-exports.Points = Points$1;
+exports.Group = Group;
+exports.Line = Line;
+exports.LineLoop = LineLoop;
+exports.LineSegments = LineSegments;
+exports.Mesh = Mesh;
+exports.Object3D = Object3D;
+exports.Points = Points;
 exports.SceneGraphMixin = SceneGraphMixin;
-exports.Sprite = Sprite$1;
+exports.Sprite = Sprite;
 exports.Text = Text;
 exports.TextStyle = TextStyle;
 
