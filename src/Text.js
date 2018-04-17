@@ -7,7 +7,7 @@ import Sprite from './Sprite'
 import TextStyle from './TextStyle'
 
 export default class Text extends Sprite {
-  constructor({ text, style, pixelRatio } = {}) {
+  constructor ({ text, style, pixelRatio } = {}) {
     super(new Three.SpriteMaterial())
     this.text = text || ''
     this.style = new TextStyle(style)
@@ -24,12 +24,12 @@ export default class Text extends Sprite {
       undefined,
       undefined,
       Three.NearestFilter,
-      Three.NearestFilter,
+      Three.NearestFilter
     )
     this.draw()
   }
 
-  draw() {
+  draw () {
     const context = this.canvas.getContext('2d')
     const { style } = this
     const lines = this.text.toString().split('\n')
@@ -44,7 +44,7 @@ export default class Text extends Sprite {
       paddingBottom,
       paddingLeft,
       textAlign,
-      verticalAlign,
+      verticalAlign
     } = this.style
     size.width += paddingLeft + paddingRight
     size.height += paddingTop + paddingBottom
@@ -125,7 +125,7 @@ export default class Text extends Sprite {
     this.material.map.needsUpdate = true
   }
 
-  drawBackground(size, style) {
+  drawBackground (size, style) {
     if (style.backgroundColor === 'transparent') {
       return
     }
@@ -137,7 +137,7 @@ export default class Text extends Sprite {
   }
 
   // TODO: Support text transform, and letter spacing
-  drawLines(lines, size, style) {
+  drawLines (lines, size, style) {
     const context = this.canvas.getContext('2d')
     context.save()
     context.font = style.font
@@ -176,7 +176,7 @@ export default class Text extends Sprite {
     context.restore()
   }
 
-  measureLines(lines, style) {
+  measureLines (lines, style) {
     const context = this.canvas.getContext('2d')
     context.save()
     context.font = style.font

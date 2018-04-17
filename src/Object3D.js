@@ -13,5 +13,5 @@ export default class Object3D extends mix(Three.Object3D)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin,
+    SceneGraphMixin
   ) {}
