@@ -9,7 +9,7 @@ import Namespace from '@takram/planck-core/src/Namespace'
 export const internal = Namespace('SceneGraphMixin')
 
 export default Mixin(S => class SceneGraphMixin extends S {
-  constructor(...args) {
+  constructor (...args) {
     super(...args)
     const scope = internal(this)
     scope.setup = false
@@ -17,32 +17,30 @@ export default Mixin(S => class SceneGraphMixin extends S {
     scope.scene = null
   }
 
-  get ancestorEventTarget() {
+  get ancestorEventTarget () {
     return this.parent || super.ancestorEventTarget
   }
 
-  set ancestorEventTarget(value) {
+  set ancestorEventTarget (value) {
     super.ancestorEventTarget = value
   }
 
-  get scene() {
-    const scope = internal(this)
-    return scope.scene
+  get scene () {
+    return internal(this).scene
   }
 
-  setup() {
-    const scope = internal(this)
-    scope.setup = true
+  setup () {
+    internal(this).setup = true
   }
 
-  dispose() {
+  dispose () {
     // Remove from its parent if exists
     if (this.parent) {
       this.parent.remove(this)
     }
   }
 
-  addedToParent(parent) {
+  addedToParent (parent) {
     const scope = internal(this)
     if (!scope.setup) {
       this.setup()
@@ -52,60 +50,58 @@ export default Mixin(S => class SceneGraphMixin extends S {
       this.addedToScene(parent)
       this.dispatchEvent({
         type: 'addedToScene',
-        scene: parent,
+        scene: parent
       })
     } else if (parent !== null && parent.scene !== null) {
       this.addedToScene(parent.scene)
       this.dispatchEvent({
         type: 'addedToScene',
-        scene: parent.scene,
+        scene: parent.scene
       })
     }
   }
 
-  addedToScene(scene) {
-    const scope = internal(this)
-    scope.scene = scene
+  addedToScene (scene) {
+    internal(this).scene = scene
     for (let i = 0; i < this.children.length; ++i) {
       const child = this.children[i]
       child.addedToScene(scene)
       child.dispatchEvent({
         type: 'addedToScene',
-        scene,
+        scene
       })
     }
   }
 
-  removedFromParent(parent) {
-    const scope = internal(this)
-    scope.scene = null
+  removedFromParent (parent) {
+    internal(this).scene = null
     if (parent instanceof Three.Scene) {
       this.removedFromScene(parent)
       this.dispatchEvent({
         type: 'removedFromScene',
-        scene: parent,
+        scene: parent
       })
     } else if (parent !== null && parent.scene !== null) {
       this.removedFromScene(parent.scene)
       this.dispatchEvent({
         type: 'removedFromScene',
-        scene: parent.scene,
+        scene: parent.scene
       })
     }
   }
 
-  removedFromScene(scene) {
+  removedFromScene (scene) {
     for (let i = 0; i < this.children.length; ++i) {
       const child = this.children[i]
       child.removedFromScene(scene)
       child.dispatchEvent({
         type: 'removedFromScene',
-        scene,
+        scene
       })
     }
   }
 
-  dispatchEvent(event, ...rest) {
+  dispatchEvent (event, ...rest) {
     // Add `to` property to the event
     if (event.type === 'added' && !event.to) {
       const scope = internal(this)

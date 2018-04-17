@@ -14,9 +14,9 @@ export default class Line extends mix(Three.Line)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin,
+    SceneGraphMixin
   ) {
-  constructor(geometry, material) {
+  constructor (geometry, material) {
     super(geometry, material || new LineBasicMaterial())
     if (this.material) {
       this.customDepthMaterial = this.material.customDepthMaterial

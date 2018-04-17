@@ -13,9 +13,9 @@ export default class Sprite extends mix(Three.Sprite)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin,
+    SceneGraphMixin
   ) {
-  constructor(material) {
+  constructor (material) {
     super(material)
     if (this.material) {
       this.customDepthMaterial = this.material.customDepthMaterial
@@ -25,7 +25,7 @@ export default class Sprite extends mix(Three.Sprite)
     this.size = new Three.Vector2()
   }
 
-  onBeforeRender(renderer, scene, camera, geometry, material, group) {
+  onBeforeRender (renderer, scene, camera, geometry, material, group) {
     const scale = 1 / camera.zoom
     const x = this.size.x * scale
     const y = this.size.y * scale

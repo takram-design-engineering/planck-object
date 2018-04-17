@@ -2,7 +2,7 @@
 // Copyright (C) 2016-Present Shota Matsuda
 
 export default class TextStyle {
-  constructor(style = {}) {
+  constructor (style = {}) {
     this.color = 'white'
     this.backgroundColor = 'transparent'
     this.fontSize = 10
@@ -62,25 +62,25 @@ export default class TextStyle {
     }
   }
 
-  get font() {
+  get font () {
     return `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`
   }
 
-  set margin(value) {
+  set margin (value) {
     this.marginTop = value
     this.marginRight = value
     this.marginBottom = value
     this.marginLeft = value
   }
 
-  set padding(value) {
+  set padding (value) {
     this.paddingTop = value
     this.paddingRight = value
     this.paddingBottom = value
     this.paddingLeft = value
   }
 
-  copy(other) {
+  copy (other) {
     this.color = other.color
     this.backgroundColor = other.backgroundColor
     this.fontSize = other.fontSize
@@ -102,11 +102,11 @@ export default class TextStyle {
     return this
   }
 
-  clone() {
+  clone () {
     return new this.constructor().copy(this)
   }
 
-  equals(other) {
+  equals (other) {
     return (
       this.color === other.color &&
       this.backgroundColor === other.backgroundColor &&

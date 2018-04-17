@@ -14,9 +14,9 @@ export default class Points extends mix(Three.Points)
   .with(
     EventDispatcherMixin,
     EventTargetMixin,
-    SceneGraphMixin,
+    SceneGraphMixin
   ) {
-  constructor(geometry, material) {
+  constructor (geometry, material) {
     super(geometry, material || new PointsMaterial())
     if (this.material) {
       this.customDepthMaterial = this.material.customDepthMaterial
@@ -25,7 +25,7 @@ export default class Points extends mix(Three.Points)
     }
   }
 
-  get identifierLength() {
+  get identifierLength () {
     const position = this.geometry.getAttribute('position')
     if (!position) {
       return super.identifierLength
