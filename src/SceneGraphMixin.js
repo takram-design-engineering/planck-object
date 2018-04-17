@@ -26,13 +26,11 @@ export default Mixin(S => class SceneGraphMixin extends S {
   }
 
   get scene () {
-    const scope = internal(this)
-    return scope.scene
+    return internal(this).scene
   }
 
   setup () {
-    const scope = internal(this)
-    scope.setup = true
+    internal(this).setup = true
   }
 
   dispose () {
@@ -64,8 +62,7 @@ export default Mixin(S => class SceneGraphMixin extends S {
   }
 
   addedToScene (scene) {
-    const scope = internal(this)
-    scope.scene = scene
+    internal(this).scene = scene
     for (let i = 0; i < this.children.length; ++i) {
       const child = this.children[i]
       child.addedToScene(scene)
@@ -77,8 +74,7 @@ export default Mixin(S => class SceneGraphMixin extends S {
   }
 
   removedFromParent (parent) {
-    const scope = internal(this)
-    scope.scene = null
+    internal(this).scene = null
     if (parent instanceof Three.Scene) {
       this.removedFromScene(parent)
       this.dispatchEvent({
