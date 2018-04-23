@@ -3,19 +3,20 @@
 
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
-import glslify from '@shotamatsuda/rollup-plugin-glslify'
 import nodeResolve from 'rollup-plugin-node-resolve'
 
 import pkg from './package.json'
 
 const globals = {
+  '@takram/planck-core': 'Planck',
+  '@takram/planck-event': 'Planck',
+  '@takram/planck-renderer': 'Planck',
   'three': 'THREE'
 }
 
 export default {
   input: './src/main.js',
   plugins: [
-    glslify(),
     nodeResolve(),
     commonjs(),
     babel({
@@ -44,7 +45,6 @@ export default {
       sourcemap: true
     },
     {
-      globals,
       format: 'es',
       file: pkg.module,
       sourcemap: true

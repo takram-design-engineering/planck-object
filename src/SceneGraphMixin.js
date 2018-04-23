@@ -4,7 +4,7 @@
 import { Mixin } from 'mixwith/src/mixwith'
 import * as Three from 'three'
 
-import Namespace from '@takram/planck-core/src/Namespace'
+import { Namespace } from '@takram/planck-core'
 
 export const internal = Namespace('SceneGraphMixin')
 
