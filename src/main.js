@@ -24,7 +24,7 @@ export {
   SceneGraphMixin,
   Sprite,
   Text,
-  TextStyle,
+  TextStyle
 }
 
 export default {
@@ -38,5 +38,5 @@ export default {
   SceneGraphMixin,
   Sprite,
   Text,
-  TextStyle,
+  TextStyle
 }

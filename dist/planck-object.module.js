@@ -1,4 +1,4 @@
-import { Group, Line, LineLoop, LineSegments, MeshLambertMaterial, Mesh, Object3D, Scene, Points, Vector2, Sprite, SpriteMaterial, CanvasTexture, NearestFilter, Math } from 'three';
+import { Group, Line, LineSegments, LineLoop, MeshLambertMaterial, Mesh, Object3D, Points, Vector2, Sprite, Scene, SpriteMaterial, CanvasTexture, NearestFilter, Math } from 'three';
 import { Namespace } from '@takram/planck-core';
 import { EventDispatcherMixin, EventTargetMixin } from '@takram/planck-event';
 import { LineBasicMaterial, PointsMaterial } from '@takram/planck-renderer';
