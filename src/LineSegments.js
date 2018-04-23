@@ -4,9 +4,8 @@
 import { mix } from 'mixwith/src/mixwith'
 import * as Three from 'three'
 
-import EventDispatcherMixin from '@takram/planck-event/src/EventDispatcherMixin'
-import EventTargetMixin from '@takram/planck-event/src/EventTargetMixin'
-import LineBasicMaterial from '@takram/planck-renderer/src/LineBasicMaterial'
+import { EventDispatcherMixin, EventTargetMixin } from '@takram/planck-event'
+import { LineBasicMaterial } from '@takram/planck-renderer'
 
 import SceneGraphMixin from './SceneGraphMixin'
 

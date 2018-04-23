@@ -1,14 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'three'], factory) :
-  (factory((global.Planck = global.Planck || {}),global.THREE));
-}(this, (function (exports,Three) { 'use strict';
-
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  };
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('@takram/planck-core'), require('@takram/planck-event'), require('@takram/planck-renderer')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'three', '@takram/planck-core', '@takram/planck-event', '@takram/planck-renderer'], factory) :
+  (factory((global.Planck = global.Planck || {}),global.THREE,global.Planck,global.Planck,global.Planck));
+}(this, (function (exports,Three,planckCore,planckEvent,planckRenderer) { 'use strict';
 
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -89,18 +83,6 @@
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   };
 
-  var objectWithoutProperties = function (obj, keys) {
-    var target = {};
-
-    for (var i in obj) {
-      if (keys.indexOf(i) >= 0) continue;
-      if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;
-      target[i] = obj[i];
-    }
-
-    return target;
-  };
-
   var possibleConstructorReturn = function (self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -129,16 +111,6 @@
     }
 
     return value;
-  };
-
-  var toConsumableArray = function (arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-      return arr2;
-    } else {
-      return Array.from(arr);
-    }
   };
 
   var _cachedApplicationRef = Symbol('_cachedApplicationRef');
@@ -255,580 +227,8 @@
   }();
 
   // The MIT License
-  // Copyright (C) 2016-Present Shota Matsuda
 
-  function createNamespace(name) {
-    var symbol = Symbol(name);
-    return function namespace(object, init) {
-      if (object[symbol] == null) {
-        if (typeof init === 'function') {
-          object[symbol] = init({});
-        } else {
-          object[symbol] = {};
-        }
-      }
-      return object[symbol];
-    };
-  }
-
-  // The MIT License
-  // Copyright (C) 2016-Present Shota Matsuda
-
-  /* eslint-env worker */
-  /* eslint-disable no-new-func */
-
-  var isBrowser = function () {
-    try {
-      if (new Function('return this === window')()) {
-        return true;
-      }
-    } catch (error) {}
-    return false;
-  }();
-
-  var isWorker = !isBrowser && function () {
-    try {
-      if (new Function('return this === self')()) {
-        return true;
-      }
-    } catch (error) {}
-    return false;
-  }();
-
-  var isNode = !isBrowser && !isWorker && function () {
-    try {
-      if (new Function('return this === global')()) {
-        return true;
-      }
-    } catch (error) {}
-    return false;
-  }();
-
-  var globalScope = function () {
-    if (isBrowser) {
-      return window;
-    }
-    if (isWorker) {
-      return self;
-    }
-    if (isNode) {
-      return global;
-    }
-    return undefined;
-  }();
-
-  // The MIT License
-
-  var internal = createNamespace('Event');
-
-  var Event = function () {
-    function Event() {
-      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      classCallCheck(this, Event);
-
-      this.init(options);
-    }
-
-    createClass(Event, [{
-      key: 'init',
-      value: function init() {
-        var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-            type = _ref.type,
-            _ref$captures = _ref.captures,
-            captures = _ref$captures === undefined ? false : _ref$captures,
-            _ref$bubbles = _ref.bubbles,
-            bubbles = _ref$bubbles === undefined ? true : _ref$bubbles,
-            _ref$cancelable = _ref.cancelable,
-            cancelable = _ref$cancelable === undefined ? true : _ref$cancelable;
-
-        var scope = internal(this);
-        scope.type = type != null ? type : null;
-        scope.captures = !!captures;
-        scope.bubbles = !!bubbles;
-        scope.cancelable = !!cancelable;
-        scope.timeStamp = globalScope.performance && globalScope.performance.now && globalScope.performance.now() || Date.now();
-        scope.propagationStopped = false;
-        scope.immediatePropagationStopped = false;
-        scope.defaultPrevented = false;
-        scope.target = null;
-        scope.currentTarget = null;
-        scope.eventPhase = null;
-        return this;
-      }
-    }, {
-      key: 'stopPropagation',
-      value: function stopPropagation() {
-        var scope = internal(this);
-        scope.propagationStopped = true;
-      }
-    }, {
-      key: 'stopImmediatePropagation',
-      value: function stopImmediatePropagation() {
-        var scope = internal(this);
-        scope.propagationStopped = true;
-        scope.immediatePropagationStopped = true;
-      }
-    }, {
-      key: 'preventDefault',
-      value: function preventDefault() {
-        if (this.cancelable) {
-          var scope = internal(this);
-          scope.defaultPrevented = true;
-        }
-      }
-    }, {
-      key: 'type',
-      get: function get$$1() {
-        return internal(this).type;
-      }
-    }, {
-      key: 'target',
-      get: function get$$1() {
-        return internal(this).target;
-      }
-    }, {
-      key: 'currentTarget',
-      get: function get$$1() {
-        return internal(this).currentTarget;
-      }
-    }, {
-      key: 'eventPhase',
-      get: function get$$1() {
-        return internal(this).eventPhase;
-      }
-    }, {
-      key: 'captures',
-      get: function get$$1() {
-        return internal(this).captures;
-      }
-    }, {
-      key: 'bubbles',
-      get: function get$$1() {
-        return internal(this).bubbles;
-      }
-    }, {
-      key: 'cancelable',
-      get: function get$$1() {
-        return internal(this).cancelable;
-      }
-    }, {
-      key: 'timeStamp',
-      get: function get$$1() {
-        return internal(this).timeStamp;
-      }
-    }, {
-      key: 'propagationStopped',
-      get: function get$$1() {
-        return internal(this).propagationStopped;
-      }
-    }, {
-      key: 'immediatePropagationStopped',
-      get: function get$$1() {
-        return internal(this).immediatePropagationStopped;
-      }
-    }, {
-      key: 'defaultPrevented',
-      get: function get$$1() {
-        return internal(this).defaultPrevented;
-      }
-    }]);
-    return Event;
-  }();
-
-
-  function modifyEvent(event) {
-    return {
-      get target() {
-        return internal(event).target;
-      },
-
-      set target(value) {
-        internal(event).target = value != null ? value : null;
-      },
-
-      get currentTarget() {
-        return internal(event).currentTarget;
-      },
-
-      set currentTarget(value) {
-        internal(event).currentTarget = value != null ? value : null;
-      },
-
-      get eventPhase() {
-        return internal(event).eventPhase;
-      },
-
-      set eventPhase(value) {
-        internal(event).eventPhase = value != null ? value : null;
-      }
-    };
-  }
-
-  // The MIT License
-
-  var CustomEvent = function (_Event) {
-    inherits(CustomEvent, _Event);
-
-    function CustomEvent() {
-      classCallCheck(this, CustomEvent);
-      return possibleConstructorReturn(this, (CustomEvent.__proto__ || Object.getPrototypeOf(CustomEvent)).apply(this, arguments));
-    }
-
-    createClass(CustomEvent, [{
-      key: 'init',
-      value: function init() {
-        var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-        var type = _ref.type,
-            target = _ref.target,
-            rest = objectWithoutProperties(_ref, ['type', 'target']);
-
-        get(CustomEvent.prototype.__proto__ || Object.getPrototypeOf(CustomEvent.prototype), 'init', this).call(this, _extends({ type: type }, rest));
-        // Support target as a parameter
-        modifyEvent(this).target = target != null ? target : null;
-        return this;
-      }
-    }]);
-    return CustomEvent;
-  }(Event);
-
-  // The MIT License
-
-  var GenericEvent = function (_CustomEvent) {
-    inherits(GenericEvent, _CustomEvent);
-
-    function GenericEvent() {
-      classCallCheck(this, GenericEvent);
-      return possibleConstructorReturn(this, (GenericEvent.__proto__ || Object.getPrototypeOf(GenericEvent)).apply(this, arguments));
-    }
-
-    createClass(GenericEvent, [{
-      key: 'init',
-      value: function init() {
-        var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-        var type = _ref.type,
-            target = _ref.target,
-            _ref$captures = _ref.captures,
-            captures = _ref$captures === undefined ? false : _ref$captures,
-            _ref$bubbles = _ref.bubbles,
-            bubbles = _ref$bubbles === undefined ? false : _ref$bubbles,
-            rest = objectWithoutProperties(_ref, ['type', 'target', 'captures', 'bubbles']);
-
-        get(GenericEvent.prototype.__proto__ || Object.getPrototypeOf(GenericEvent.prototype), 'init', this).call(this, { type: type, target: target, captures: captures, bubbles: bubbles });
-        var names = Object.keys(rest);
-        for (var i = 0; i < names.length; ++i) {
-          var name = names[i];
-          if (!{}.hasOwnProperty.call(this, name)) {
-            this[name] = rest[name];
-          } else {
-            throw new Error('Name "' + name + '" cannot be used for event property');
-          }
-        }
-        return this;
-      }
-    }]);
-    return GenericEvent;
-  }(CustomEvent);
-
-  // The MIT License
-
-  var internal$1 = createNamespace('EventDispatcherMixin');
-
-  function handleEvent(event, listener) {
-    if (typeof listener === 'function') {
-      listener(event);
-    } else if (typeof listener.handleEvent === 'function') {
-      listener.handleEvent(event);
-    } else {
-      throw new Error('Listener is neither function nor event listener');
-    }
-  }
-
-  var EventDispatcherMixin = Mixin(function (S) {
-    return function (_S) {
-      inherits(EventDispatcherMixin, _S);
-
-      function EventDispatcherMixin() {
-        var _ref;
-
-        classCallCheck(this, EventDispatcherMixin);
-
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        var _this = possibleConstructorReturn(this, (_ref = EventDispatcherMixin.__proto__ || Object.getPrototypeOf(EventDispatcherMixin)).call.apply(_ref, [this].concat(args)));
-
-        internal$1(_this).eventTypes = {};
-        return _this;
-      }
-
-      createClass(EventDispatcherMixin, [{
-        key: 'addEventListener',
-        value: function addEventListener(type, listener) {
-          var capture = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-          if (typeof listener !== 'function' && (typeof listener === 'undefined' ? 'undefined' : _typeof(listener)) !== 'object') {
-            throw new Error('Attempt to add non-function non-object listener');
-          }
-
-          var _internal = internal$1(this),
-              eventTypes = _internal.eventTypes;
-
-          if (eventTypes[type] == null) {
-            eventTypes[type] = { bubble: [], capture: [] };
-          }
-          var listeners = capture ? eventTypes[type].capture : eventTypes[type].bubble;
-          if (listeners.includes(listener)) {
-            return;
-          }
-          listeners.push(listener);
-        }
-      }, {
-        key: 'removeEventListener',
-        value: function removeEventListener(type, listener) {
-          var capture = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-          var _internal2 = internal$1(this),
-              eventTypes = _internal2.eventTypes;
-
-          if (eventTypes[type] == null) {
-            return;
-          }
-          var listeners = capture ? eventTypes[type].capture : eventTypes[type].bubble;
-          var index = listeners.indexOf(listener);
-          if (index !== -1) {
-            listeners.splice(index, 1);
-          }
-        }
-      }, {
-        key: 'on',
-        value: function on() {
-          this.addEventListener.apply(this, arguments);
-          return this;
-        }
-      }, {
-        key: 'off',
-        value: function off() {
-          this.removeEventListener.apply(this, arguments);
-          return this;
-        }
-      }, {
-        key: 'once',
-        value: function once(type, listener) {
-          for (var _len2 = arguments.length, rest = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-            rest[_key2 - 2] = arguments[_key2];
-          }
-
-          var _this2 = this;
-
-          var callback = function callback(event) {
-            handleEvent(event, listener);
-            _this2.removeEventListener.apply(_this2, [type, callback].concat(rest));
-          };
-          this.addEventListener.apply(this, [type, callback].concat(rest));
-          return this;
-        }
-      }, {
-        key: 'dispatchEvent',
-        value: function dispatchEvent(object) {
-          var event = object;
-          if (!(event instanceof Event)) {
-            event = new GenericEvent(object);
-          }
-          var modifier = modifyEvent(event);
-
-          // Set target to this when it's not set
-          if (event.target == null) {
-            modifier.target = this;
-          }
-          // Current target should be always this
-          modifier.currentTarget = this;
-
-          var _internal3 = internal$1(this),
-              eventTypes = _internal3.eventTypes;
-
-          var listeners = eventTypes[event.type];
-          if (listeners == null) {
-            return;
-          }
-          var _event = event,
-              eventPhase = _event.eventPhase;
-
-          if (!eventPhase || eventPhase === 'target' || eventPhase === 'capture') {
-            var capture = [].concat(toConsumableArray(listeners.capture));
-            for (var i = 0; i < capture.length; ++i) {
-              handleEvent(event, capture[i]);
-              if (event.immediatePropagationStopped) {
-                return;
-              }
-            }
-          }
-          if (!eventPhase || eventPhase === 'target' || eventPhase === 'bubble') {
-            var bubble = [].concat(toConsumableArray(listeners.bubble));
-            for (var _i = 0; _i < bubble.length; ++_i) {
-              handleEvent(event, bubble[_i]);
-              if (event.immediatePropagationStopped) {
-                return;
-              }
-            }
-          }
-        }
-      }]);
-      return EventDispatcherMixin;
-    }(S);
-  });
-
-  // The MIT License
-
-  var internal$2 = createNamespace('EventTargetMixin');
-
-  var EventTargetMixin = Mixin(function (S) {
-    return function (_S) {
-      inherits(EventTargetMixin, _S);
-
-      function EventTargetMixin() {
-        var _ref;
-
-        classCallCheck(this, EventTargetMixin);
-
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        var _this = possibleConstructorReturn(this, (_ref = EventTargetMixin.__proto__ || Object.getPrototypeOf(EventTargetMixin)).call.apply(_ref, [this].concat(args)));
-
-        var scope = internal$2(_this);
-        scope.ancestorEventTarget = null;
-        scope.descendantEventTarget = null;
-        return _this;
-      }
-
-      createClass(EventTargetMixin, [{
-        key: 'determinePropagationPath',
-        value: function determinePropagationPath() {
-          var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-
-          var path = [];
-          if (target != null) {
-            var ancestor = target;
-            while (ancestor != null) {
-              path.unshift(ancestor);
-              ancestor = ancestor.ancestorEventTarget;
-              if (path.includes(ancestor)) {
-                break;
-              }
-            }
-          } else {
-            var descendant = this;
-            while (descendant != null) {
-              path.push(descendant);
-              descendant = descendant.descendantEventTarget;
-              if (path.includes(descendant)) {
-                break;
-              }
-            }
-          }
-          return path;
-        }
-      }, {
-        key: 'dispatchImmediateEvent',
-        value: function dispatchImmediateEvent(event) {
-          get(EventTargetMixin.prototype.__proto__ || Object.getPrototypeOf(EventTargetMixin.prototype), 'dispatchEvent', this).call(this, event);
-        }
-      }, {
-        key: 'dispatchEvent',
-        value: function dispatchEvent(object) {
-          var propagationPath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-          var event = object;
-          if (!(event instanceof Event)) {
-            event = new GenericEvent(object);
-          }
-          var modifier = modifyEvent(event);
-
-          // Just dispatch the event if it doesn't capture nor bubble
-          if (!event.captures && !event.bubbles) {
-            this.dispatchImmediateEvent(event);
-            return;
-          }
-
-          // Determine the propagation path of this event
-          var path = void 0;
-          if (Array.isArray(propagationPath)) {
-            path = [].concat(toConsumableArray(propagationPath));
-          } else {
-            path = this.determinePropagationPath(event.target || this);
-          }
-
-          // The last item in the propagation path must always be the event target
-          if (event.target == null) {
-            modifier.target = path.pop();
-          } else {
-            path.pop();
-          }
-
-          // Capturing event phase
-          if (event.captures) {
-            modifier.eventPhase = 'capture';
-            for (var i = 0; i < path.length; ++i) {
-              path[i].dispatchImmediateEvent(event);
-              if (event.propagationStopped) {
-                return;
-              }
-            }
-          }
-
-          // Target event phase. The target can be an integer if the parent target has
-          // multiple identifiers, typically when picking an instanced geometry.
-          if (!Number.isInteger(event.target)) {
-            modifier.eventPhase = 'target';
-            event.target.dispatchImmediateEvent(event);
-            if (event.propagationStopped) {
-              return;
-            }
-          }
-
-          // Bubbling event phase
-          if (event.bubbles) {
-            modifier.eventPhase = 'bubble';
-            for (var _i = path.length - 1; _i >= 0; --_i) {
-              path[_i].dispatchImmediateEvent(event);
-              if (event.propagationStopped) {
-                return;
-              }
-            }
-          }
-        }
-      }, {
-        key: 'ancestorEventTarget',
-        get: function get$$1() {
-          var scope = internal$2(this);
-          return scope.ancestorEventTarget;
-        },
-        set: function set$$1(value) {
-          var scope = internal$2(this);
-          scope.ancestorEventTarget = value != null ? value : null;
-        }
-      }, {
-        key: 'descendantEventTarget',
-        get: function get$$1() {
-          var scope = internal$2(this);
-          return scope.descendantEventTarget;
-        },
-        set: function set$$1(value) {
-          var scope = internal$2(this);
-          scope.descendantEventTarget = value != null ? value : null;
-        }
-      }]);
-      return EventTargetMixin;
-    }(S);
-  });
-
-  // The MIT License
-
-  var internal$3 = createNamespace('SceneGraphMixin');
+  var internal = planckCore.Namespace('SceneGraphMixin');
 
   var SceneGraphMixin = Mixin(function (S) {
     return function (_S) {
@@ -845,7 +245,7 @@
 
         var _this = possibleConstructorReturn(this, (_ref = SceneGraphMixin.__proto__ || Object.getPrototypeOf(SceneGraphMixin)).call.apply(_ref, [this].concat(args)));
 
-        var scope = internal$3(_this);
+        var scope = internal(_this);
         scope.setup = false;
         scope.disposed = false;
         scope.scene = null;
@@ -855,7 +255,7 @@
       createClass(SceneGraphMixin, [{
         key: 'setup',
         value: function setup() {
-          internal$3(this).setup = true;
+          internal(this).setup = true;
         }
       }, {
         key: 'dispose',
@@ -868,7 +268,7 @@
       }, {
         key: 'addedToParent',
         value: function addedToParent(parent) {
-          var scope = internal$3(this);
+          var scope = internal(this);
           if (!scope.setup) {
             this.setup();
             scope.setup = true;
@@ -890,7 +290,7 @@
       }, {
         key: 'addedToScene',
         value: function addedToScene(scene) {
-          internal$3(this).scene = scene;
+          internal(this).scene = scene;
           for (var i = 0; i < this.children.length; ++i) {
             var child = this.children[i];
             child.addedToScene(scene);
@@ -903,7 +303,7 @@
       }, {
         key: 'removedFromParent',
         value: function removedFromParent(parent) {
-          internal$3(this).scene = null;
+          internal(this).scene = null;
           if (parent instanceof Three.Scene) {
             this.removedFromScene(parent);
             this.dispatchEvent({
@@ -937,7 +337,7 @@
 
           // Add `to` property to the event
           if (event.type === 'added' && !event.to) {
-            var scope = internal$3(this);
+            var scope = internal(this);
             this.addedToParent(this.parent);
             get(SceneGraphMixin.prototype.__proto__ || Object.getPrototypeOf(SceneGraphMixin.prototype), 'dispatchEvent', this).call(this, { type: 'added', parent: this.parent });
             get(SceneGraphMixin.prototype.__proto__ || Object.getPrototypeOf(SceneGraphMixin.prototype), 'dispatchEvent', this).call(this, { type: 'addedToParent', parent: this.parent });
@@ -946,7 +346,7 @@
           }
           // Add `from` property to the event
           if (event.type === 'removed' && !event.from) {
-            var _scope = internal$3(this);
+            var _scope = internal(this);
             this.removedFromParent(_scope.parent);
             get(SceneGraphMixin.prototype.__proto__ || Object.getPrototypeOf(SceneGraphMixin.prototype), 'dispatchEvent', this).call(this, { type: 'removed', parent: _scope.parent });
             get(SceneGraphMixin.prototype.__proto__ || Object.getPrototypeOf(SceneGraphMixin.prototype), 'dispatchEvent', this).call(this, { type: 'removedFromParent', parent: _scope.parent });
@@ -971,7 +371,7 @@
       }, {
         key: 'scene',
         get: function get$$1() {
-          return internal$3(this).scene;
+          return internal(this).scene;
         }
       }]);
       return SceneGraphMixin;
@@ -989,189 +389,7 @@
     }
 
     return Group;
-  }(mix(Three.Group).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
-
-  var depth_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec4 diffuseColor = vec4(1.0);\n\n#if DEPTH_PACKING == 3200\n  diffuseColor.a = opacity;\n#endif\n";
-
-  var depth_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_frag.glsl\n\n#include <map_fragment>\n#include <alphamap_fragment>\n#include <alphatest_fragment>\n#include <logdepthbuf_fragment>\n\n#if DEPTH_PACKING == 3200\n  gl_FragColor = vec4(vec3(gl_FragCoord.z), opacity);\n#elif DEPTH_PACKING == 3201\n  gl_FragColor = packDepthToRGBA(gl_FragCoord.z);\n#endif\n";
-
-  var depth_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_frag.glsl\n\n#if DEPTH_PACKING == 3200\n  uniform float opacity;\n#endif\n\n#include <common>\n#include <packing>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var depth_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_vert.glsl\n\n#include <uv_vertex>\n#include <skinbase_vertex>\n#ifdef USE_DISPLACEMENTMAP\n  #include <beginnormal_vertex>\n  #include <morphnormal_vertex>\n  #include <skinnormal_vertex>\n#endif\n#include <begin_vertex>\n";
-
-  var depth_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_vert.glsl\n\n#include <morphtarget_vertex>\n#include <skinning_vertex>\n#include <displacementmap_vertex>\n#include <project_vertex>\n#include <logdepthbuf_vertex>\n#include <clipping_planes_vertex>\n";
-
-  var depth_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// depth_vert.glsl\n\n#include <common>\n#include <uv_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  var distance_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec4 diffuseColor = vec4(1.0);\n\n#include <map_fragment>\n#include <alphamap_fragment>\n#include <alphatest_fragment>\n\nfloat dist = length(vWorldPosition - referencePosition);\ndist = (dist - nearDistance) / (farDistance - nearDistance);\ndist = saturate(dist); // clamp to [0, 1]\n";
-
-  var distance_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_frag.glsl\n\ngl_FragColor = packDepthToRGBA(dist);\n";
-
-  var distance_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_frag.glsl\n\n#define DISTANCE\n\nuniform vec3 referencePosition;\nuniform float nearDistance;\nuniform float farDistance;\nvarying vec3 vWorldPosition;\n\n#include <common>\n#include <packing>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var distance_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_vert.glsl\n\n#include <uv_vertex>\n#include <skinbase_vertex>\n#ifdef USE_DISPLACEMENTMAP\n  #include <beginnormal_vertex>\n  #include <morphnormal_vertex>\n  #include <skinnormal_vertex>\n#endif\n#include <begin_vertex>\n";
-
-  var distance_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_vert.glsl\n\n#include <morphtarget_vertex>\n#include <skinning_vertex>\n#include <displacementmap_vertex>\n#include <project_vertex>\n#include <worldpos_vertex>\n#include <clipping_planes_vertex>\n\nvWorldPosition = worldPosition.xyz;\n";
-
-  var distance_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// distanceRGBA_vert.glsl\n\n#define DISTANCE\n\nvarying vec4 vWorldPosition;\n\n#include <common>\n#include <uv_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  var line_basic_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec3 outgoingLight = vec3(0.0);\nvec4 diffuseColor = vec4(diffuse, opacity);\n";
-
-  var line_basic_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_frag.glsl\n\n#include <logdepthbuf_fragment>\n#include <color_fragment>\n\noutgoingLight = diffuseColor.rgb; // simple shader\n\ngl_FragColor = vec4(outgoingLight, diffuseColor.a);\n\n#include <premultiplied_alpha_fragment>\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n#include <fog_fragment>\n";
-
-  var line_basic_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_frag.glsl\n\nuniform vec3 diffuse;\nuniform float opacity;\n\n#include <common>\n#include <color_pars_fragment>\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var line_basic_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_vert.glsl\n\n#include <color_vertex>\n#include <begin_vertex>\n";
-
-  var line_basic_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_vert.glsl\n\n#include <project_vertex>\n#include <logdepthbuf_vertex>\n#include <clipping_planes_vertex>\n";
-
-  var line_basic_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// linedashed_vert.glsl\n\n#include <common>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  var mesh_lambert_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec4 diffuseColor = vec4(diffuse, opacity);\nReflectedLight reflectedLight = ReflectedLight(vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));\nvec3 totalEmissiveRadiance = emissive;\n";
-
-  var mesh_lambert_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_frag.glsl\n\n#include <logdepthbuf_fragment>\n#include <map_fragment>\n#include <color_fragment>\n#include <alphamap_fragment>\n#include <alphatest_fragment>\n#include <specularmap_fragment>\n#include <emissivemap_fragment>\n\n// accumulation\nreflectedLight.indirectDiffuse = getAmbientLightIrradiance(ambientLightColor);\n\n#include <lightmap_fragment>\n\nreflectedLight.indirectDiffuse *= BRDF_Diffuse_Lambert(diffuseColor.rgb);\n\n#ifdef DOUBLE_SIDED\n  reflectedLight.directDiffuse = (gl_FrontFacing) ? vLightFront : vLightBack;\n#else\n  reflectedLight.directDiffuse = vLightFront;\n#endif\n\nreflectedLight.directDiffuse *= BRDF_Diffuse_Lambert(diffuseColor.rgb) * getShadowMask();\n\n// modulation\n#include <aomap_fragment>\n\nvec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;\n\n#include <envmap_fragment>\n\ngl_FragColor = vec4(outgoingLight, diffuseColor.a);\n\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n#include <fog_fragment>\n#include <premultiplied_alpha_fragment>\n#include <dithering_fragment>\n";
-
-  var mesh_lambert_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_frag.glsl\n\nuniform vec3 diffuse;\nuniform vec3 emissive;\nuniform float opacity;\n\nvarying vec3 vLightFront;\n#ifdef DOUBLE_SIDED\n  varying vec3 vLightBack;\n#endif\n\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <envmap_pars_fragment>\n#include <bsdfs>\n#include <lights_pars>\n#include <fog_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <shadowmask_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var mesh_lambert_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_vert.glsl\n\n#include <uv_vertex>\n#include <uv2_vertex>\n#include <color_vertex>\n#include <beginnormal_vertex>\n#include <morphnormal_vertex>\n#include <skinbase_vertex>\n#include <skinnormal_vertex>\n#include <defaultnormal_vertex>\n#include <begin_vertex>\n";
-
-  var mesh_lambert_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_vert.glsl\n\n#include <morphtarget_vertex>\n#include <skinning_vertex>\n#include <project_vertex>\n#include <logdepthbuf_vertex>\n#include <clipping_planes_vertex>\n#include <worldpos_vertex>\n#include <envmap_vertex>\n#include <lights_lambert_vertex>\n#include <shadowmap_vertex>\n#include <fog_vertex>\n";
-
-  var mesh_lambert_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// meshlambert_vert.glsl\n\n#define LAMBERT\n\nvarying vec3 vLightFront;\n#ifdef DOUBLE_SIDED\n  varying vec3 vLightBack;\n#endif\n\n#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <envmap_pars_vertex>\n#include <bsdfs>\n#include <lights_pars>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  var picking_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <clipping_planes_fragment>\n\ngl_FragColor = identifier;\n";
-
-  var picking_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <logdepthbuf_fragment>\n";
-
-  var picking_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\nuniform vec4 identifier;\n\n#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var picking_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <skinbase_vertex>\n#include <begin_vertex>\n";
-
-  var picking_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <morphtarget_vertex>\n#include <skinning_vertex>\n#include <project_vertex>\n#include <logdepthbuf_vertex>\n#include <worldpos_vertex>\n#include <clipping_planes_vertex>\n";
-
-  var picking_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <common>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  var points_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_frag.glsl\n\n#include <clipping_planes_fragment>\n\nvec3 outgoingLight = vec3(0.0);\nvec4 diffuseColor = vec4(diffuse, opacity);\n";
-
-  var points_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_frag.glsl\n\n#include <logdepthbuf_fragment>\n#include <map_particle_fragment>\n#include <color_fragment>\n#include <alphatest_fragment>\n\noutgoingLight = diffuseColor.rgb;\n\ngl_FragColor = vec4(outgoingLight, diffuseColor.a);\n\n#include <premultiplied_alpha_fragment>\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n#include <fog_fragment>\n";
-
-  var points_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_frag.glsl\n\nuniform vec3 diffuse;\nuniform float opacity;\n\n#include <common>\n#include <packing>\n#include <color_pars_fragment>\n#include <map_particle_pars_fragment>\n#include <fog_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n";
-
-  var points_picking_frag_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <clipping_planes_fragment>\n\ngl_FragColor = vVertexID;\n";
-
-  var points_picking_frag_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <logdepthbuf_fragment>\n";
-
-  var points_picking_frag_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvarying vec4 vVertexID;\n";
-
-  var points_picking_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <begin_vertex>\n";
-
-  var points_picking_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <project_vertex>\n\n#ifdef USE_SIZEATTENUATION\n  gl_PointSize = size * (scale / -mvPosition.z);\n#else\n  gl_PointSize = size;\n#endif\n\n{\n  // Add 1 to distinguish points draw or not\n  vec4 v = decomposeVertexID(vertexID + 1.0);\n  vVertexID = addVertexID(identifier, v) / 255.0;\n}\n\n#include <logdepthbuf_vertex>\n#include <clipping_planes_vertex>\n#include <worldpos_vertex>\n";
-
-  var points_picking_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\nuniform float size;\nuniform float scale;\n\n#include <common>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nuniform vec4 identifier;\n\nattribute float vertexID;\n\nvarying vec4 vVertexID;\n\nvec4 decomposeVertexID(float v) {\n  float x = floor(v / 16777216.0);\n  v -= x * 16777216.0;\n  float y = floor(v / 65536.0);\n  v -= y * 65536.0;\n  float z = floor(v / 256.0);\n  v -= z * 256.0;\n  return vec4(x, y, z, v);\n}\n\nvec4 addVertexID(vec4 v, vec4 id) {\n  vec4 r = floor(v * 255.0 + 0.5) + id;\n  r.z += floor(r.w / 256.0);\n  r.y += floor(r.z / 256.0);\n  r.x += floor(r.y / 256.0);\n  return mod(r, 256.0);\n}\n";
-
-  var points_vert_begin = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_vert.glsl\n\n#include <color_vertex>\n#include <begin_vertex>\n";
-
-  var points_vert_end = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_vert.glsl\n\n#include <project_vertex>\n\n#ifdef USE_SIZEATTENUATION\n  gl_PointSize = size * (scale / -mvPosition.z);\n#else\n  gl_PointSize = size;\n#endif\n\n#include <logdepthbuf_vertex>\n#include <clipping_planes_vertex>\n#include <worldpos_vertex>\n#include <shadowmap_vertex>\n#include <fog_vertex>\n";
-
-  var points_vert_params = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2010-2017 three.js authors\n// Copyright (C) 2016-Present Shota Matsuda\n\n// r87\n// points_vert.glsl\n\nuniform float size;\nuniform float scale;\n\n#include <common>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n";
-
-  // The MIT License
-
-  var ShaderLib = {
-    depth_frag_begin: depth_frag_begin,
-    depth_frag_end: depth_frag_end,
-    depth_frag_params: depth_frag_params,
-    depth_vert_begin: depth_vert_begin,
-    depth_vert_end: depth_vert_end,
-    depth_vert_params: depth_vert_params,
-    distance_frag_begin: distance_frag_begin,
-    distance_frag_end: distance_frag_end,
-    distance_frag_params: distance_frag_params,
-    distance_vert_begin: distance_vert_begin,
-    distance_vert_end: distance_vert_end,
-    distance_vert_params: distance_vert_params,
-    line_basic_frag_begin: line_basic_frag_begin,
-    line_basic_frag_end: line_basic_frag_end,
-    line_basic_frag_params: line_basic_frag_params,
-    line_basic_vert_begin: line_basic_vert_begin,
-    line_basic_vert_end: line_basic_vert_end,
-    line_basic_vert_params: line_basic_vert_params,
-    mesh_lambert_frag_begin: mesh_lambert_frag_begin,
-    mesh_lambert_frag_end: mesh_lambert_frag_end,
-    mesh_lambert_frag_params: mesh_lambert_frag_params,
-    mesh_lambert_vert_begin: mesh_lambert_vert_begin,
-    mesh_lambert_vert_end: mesh_lambert_vert_end,
-    mesh_lambert_vert_params: mesh_lambert_vert_params,
-    picking_frag_begin: picking_frag_begin,
-    picking_frag_end: picking_frag_end,
-    picking_frag_params: picking_frag_params,
-    picking_vert_begin: picking_vert_begin,
-    picking_vert_end: picking_vert_end,
-    picking_vert_params: picking_vert_params,
-    points_frag_begin: points_frag_begin,
-    points_frag_end: points_frag_end,
-    points_frag_params: points_frag_params,
-    points_picking_frag_begin: points_picking_frag_begin,
-    points_picking_frag_end: points_picking_frag_end,
-    points_picking_frag_params: points_picking_frag_params,
-    points_picking_vert_begin: points_picking_vert_begin,
-    points_picking_vert_end: points_picking_vert_end,
-    points_picking_vert_params: points_picking_vert_params,
-    points_vert_begin: points_vert_begin,
-    points_vert_end: points_vert_end,
-    points_vert_params: points_vert_params
-  };
-
-  // The MIT License
-
-  function includeShader(source) {
-    var includes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ShaderLib;
-    var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'planck/';
-
-    var pattern = new RegExp('#include +<' + path + '([\\w\\d.]+)>', 'g');
-    var replace = function replace(match, id) {
-      var source = includes[id];
-      if (source === undefined) {
-        throw new Error('Could not resolve #include <' + path + id + '>');
-      }
-      return source.replace(pattern, replace);
-    };
-    return source.replace(pattern, replace);
-  }
-
-  var fragmentShader = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/line_basic_frag_params>\n\nuniform float pixelRatio;\nuniform float targetPixelRatio;\n\nvoid main() {\n  #include <planck/line_basic_frag_begin>\n\n  diffuseColor.a *= pixelRatio / targetPixelRatio;\n\n  #include <planck/line_basic_frag_end>\n}\n";
-
-  var vertexShader = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/line_basic_vert_params>\n\nvoid main() {\n  #include <planck/line_basic_vert_begin>\n  #include <planck/line_basic_vert_end>\n}\n";
-
-  // The MIT License
-
-  var LineBasicMaterial = function (_Three$ShaderMaterial) {
-    inherits(LineBasicMaterial, _Three$ShaderMaterial);
-
-    function LineBasicMaterial() {
-      var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      classCallCheck(this, LineBasicMaterial);
-
-      var _this = possibleConstructorReturn(this, (LineBasicMaterial.__proto__ || Object.getPrototypeOf(LineBasicMaterial)).call(this));
-
-      _this.color = new Three.Color(0xffffff);
-      var source = new Three.LineBasicMaterial();
-      Three.LineBasicMaterial.prototype.copy.call(_this, source);
-      source.dispose();
-      _this.setValues(parameters);
-      _this.isLineBasicMaterial = true;
-
-      _this.uniforms = Three.UniformsUtils.merge([Three.UniformsLib.common, Three.UniformsLib.fog, {
-        pixelRatio: { value: 1 },
-        targetPixelRatio: { value: 2 }
-      }]);
-      _this.vertexShader = includeShader(vertexShader);
-      _this.fragmentShader = includeShader(fragmentShader);
-      return _this;
-    }
-
-    return LineBasicMaterial;
-  }(Three.ShaderMaterial);
+  }(mix(Three.Group).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1181,7 +399,7 @@
     function Line(geometry, material) {
       classCallCheck(this, Line);
 
-      var _this = possibleConstructorReturn(this, (Line.__proto__ || Object.getPrototypeOf(Line)).call(this, geometry, material || new LineBasicMaterial()));
+      var _this = possibleConstructorReturn(this, (Line.__proto__ || Object.getPrototypeOf(Line)).call(this, geometry, material || new planckRenderer.LineBasicMaterial()));
 
       if (_this.material) {
         _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1192,7 +410,7 @@
     }
 
     return Line;
-  }(mix(Three.Line).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.Line).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1202,7 +420,7 @@
     function LineLoop(geometry, material) {
       classCallCheck(this, LineLoop);
 
-      var _this = possibleConstructorReturn(this, (LineLoop.__proto__ || Object.getPrototypeOf(LineLoop)).call(this, geometry, material || new LineBasicMaterial()));
+      var _this = possibleConstructorReturn(this, (LineLoop.__proto__ || Object.getPrototypeOf(LineLoop)).call(this, geometry, material || new planckRenderer.LineBasicMaterial()));
 
       if (_this.material) {
         _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1213,7 +431,7 @@
     }
 
     return LineLoop;
-  }(mix(Three.LineLoop).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.LineLoop).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1223,7 +441,7 @@
     function LineSegments(geometry, material) {
       classCallCheck(this, LineSegments);
 
-      var _this = possibleConstructorReturn(this, (LineSegments.__proto__ || Object.getPrototypeOf(LineSegments)).call(this, geometry, material || new LineBasicMaterial()));
+      var _this = possibleConstructorReturn(this, (LineSegments.__proto__ || Object.getPrototypeOf(LineSegments)).call(this, geometry, material || new planckRenderer.LineBasicMaterial()));
 
       if (_this.material) {
         _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1234,7 +452,7 @@
     }
 
     return LineSegments;
-  }(mix(Three.LineSegments).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.LineSegments).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1257,7 +475,7 @@
     }
 
     return Mesh;
-  }(mix(Three.Mesh).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.Mesh).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1270,38 +488,7 @@
     }
 
     return Object3D;
-  }(mix(Three.Object3D).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
-
-  var fragmentShader$1 = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/points_frag_params>\n\nvoid main() {\n  #include <planck/points_frag_begin>\n  #include <planck/points_frag_end>\n}\n";
-
-  var vertexShader$1 = "#define GLSLIFY 1\n// The MIT License\n// Copyright (C) 2016-Present Shota Matsuda\n\n#include <planck/points_vert_params>\n\nvoid main() {\n  #include <planck/points_vert_begin>\n  #include <planck/points_vert_end>\n}\n";
-
-  // The MIT License
-
-  var PointsMaterial = function (_Three$ShaderMaterial) {
-    inherits(PointsMaterial, _Three$ShaderMaterial);
-
-    function PointsMaterial() {
-      var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      classCallCheck(this, PointsMaterial);
-
-      var _this = possibleConstructorReturn(this, (PointsMaterial.__proto__ || Object.getPrototypeOf(PointsMaterial)).call(this));
-
-      _this.color = new Three.Color(0xffffff);
-      var source = new Three.PointsMaterial();
-      Three.PointsMaterial.prototype.copy.call(_this, source);
-      source.dispose();
-      _this.setValues(parameters);
-      _this.isPointsMaterial = true;
-
-      _this.uniforms = Three.UniformsUtils.merge([Three.ShaderLib.points.uniforms]);
-      _this.vertexShader = includeShader(vertexShader$1);
-      _this.fragmentShader = includeShader(fragmentShader$1);
-      return _this;
-    }
-
-    return PointsMaterial;
-  }(Three.ShaderMaterial);
+  }(mix(Three.Object3D).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1311,7 +498,7 @@
     function Points(geometry, material) {
       classCallCheck(this, Points);
 
-      var _this = possibleConstructorReturn(this, (Points.__proto__ || Object.getPrototypeOf(Points)).call(this, geometry, material || new PointsMaterial()));
+      var _this = possibleConstructorReturn(this, (Points.__proto__ || Object.getPrototypeOf(Points)).call(this, geometry, material || new planckRenderer.PointsMaterial()));
 
       if (_this.material) {
         _this.customDepthMaterial = _this.material.customDepthMaterial;
@@ -1332,7 +519,7 @@
       }
     }]);
     return Points;
-  }(mix(Three.Points).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.Points).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
 
@@ -1366,7 +553,7 @@
       }
     }]);
     return Sprite;
-  }(mix(Three.Sprite).with(EventDispatcherMixin, EventTargetMixin, SceneGraphMixin));
+  }(mix(Three.Sprite).with(planckEvent.EventDispatcherMixin, planckEvent.EventTargetMixin, SceneGraphMixin));
 
   // The MIT License
   // Copyright (C) 2016-Present Shota Matsuda
@@ -1699,6 +886,20 @@
 
   // The MIT License
 
+  var main = {
+    Group: Group,
+    Line: Line,
+    LineLoop: LineLoop,
+    LineSegments: LineSegments,
+    Mesh: Mesh,
+    Object3D: Object3D,
+    Points: Points,
+    SceneGraphMixin: SceneGraphMixin,
+    Sprite: Sprite,
+    Text: Text,
+    TextStyle: TextStyle
+  };
+
   exports.Group = Group;
   exports.Line = Line;
   exports.LineLoop = LineLoop;
@@ -1710,6 +911,7 @@
   exports.Sprite = Sprite;
   exports.Text = Text;
   exports.TextStyle = TextStyle;
+  exports.default = main;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
